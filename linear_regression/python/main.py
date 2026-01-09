@@ -1,4 +1,5 @@
 import numpy as np
+from linreg_internal import LinearRegression as _CppImplimentation
 class LinearRegression:
     def __init__(self, method="normal_eq", lr=0.01, epochs=1000, regul=None, lambda_=0.0, alpha=0.5):
         self.method = method
@@ -9,15 +10,20 @@ class LinearRegression:
         self.alpha = alpha
         
         # these are kept in hidden state (for updating value)
-        self._weights = None
+        # old : self._weights = None
 
         # user will see this
         self.coef_ = None
         self.intercept_ = None
-        self.loss_history = []
+        # self.loss_history = []
         self._validate_params()
 
+        # new :
+        self._internal_egine = _CppImplimentation()
+
     def fit(self, X, y):
+        '''old :
+
         y = y.ravel()
         X = self._add_intercept(X)
         self._initialize_weights(X)
@@ -33,10 +39,28 @@ class LinearRegression:
         
         self.coef_ = self._weights[1:]              # all are coeficeints of features
         self.intercept_ = self._weights[0]          # except the first one - that is bias's weight
+        '''
+
+        # new :
+        y = y.ravel()
+        self._internal_egine.fit(X, y, self.method, self.regul if self.regul else "none", self.lr, self.epochs, self.lambda_, self.alpha)
+        weights = self._internal_egine.get_weights()
+        self.intercept_ = weights[0]
+        self.coef_ = weights[1:]
+
+        return self
 
     def predict(self, X):
+        ''' old:
         X = self._add_intercept(X)
         return X.dot(self._weights)
+        '''
+
+        # new : 
+        return self._internal_egine.predict(X)
+
+    def get_loss_history(self):
+        return self._internal_egine.get_loss_history()
 
     def score(self, X, y):
         y = y.ravel()
@@ -56,7 +80,7 @@ class LinearRegression:
             raise ValueError("Aplha must be in between 0 and 1.")
         if self.method == 'normal_eq' and self.regul in ['l1', 'elastic_net']:
             raise ValueError("Normal equation supports only L2 regularization.")
-        
+'''     
     def _initialize_weights(self, X):
         n_features = X.shape[1]                   # shape = (rows, cols) so shape[1] will return number of features.
 
@@ -139,44 +163,48 @@ class LinearRegression:
             grad += self.lambda_ * (self.alpha * np.sign(w) + 2* (1 -self.alpha) * w)
 
         return grad
-
+'''
 def main():
     np.random.seed(42)
 
-    # sample test dataset creating, REF : Hands on Machine Learning book by Aurelien Geron ;
     X = 2 * np.random.rand(100, 1)
     y = 4 + 3 * X + np.random.randn(100, 1)
 
-    methods = ['normal_eq', 'gd', 'sgd']
-    reguls = [None, 'l1', 'l2', 'elastic_net']
+    methods = ["normal_eq", "gd", "sgd"]
+    reguls = [None, "l1", "l2", "elastic_net"]
 
-    print("\nLINEAR REGRESSION TEST RESULTS\n")
+    print("\nLINEAR REGRESSION (C++ BACKEND) TEST RESULTS\n")
     print(f"{'Method':<10} {'Regul':<12} {'Coef':<12} {'Intercept':<12} {'R2':<8}")
-    print("-" * 50)
+    print("-" * 55)
 
     for method in methods:
         for regul in reguls:
 
-            if method == 'normal_eq' and regul in ['l1', 'elastic_net']:
+            if method == "normal_eq" and regul in ["l1", "elastic_net"]:
                 continue
 
             try:
-                model = LinearRegression(method=method,  regul=regul,lr=0.01, epochs=1000,lambda_=0.1, alpha=0.5)
+                model = LinearRegression(
+                    method=method,
+                    regul=regul,
+                    lr=0.01,
+                    epochs=1000,
+                    lambda_=0.1,
+                    alpha=0.5,
+                )
 
                 model.fit(X, y)
                 r2 = model.score(X, y)
-                coef = model.coef_[0]
-                intercept = model.intercept_
 
                 print(
                     f"{method:<10} {str(regul):<12} "
-                    f"{coef:<12.4f} {intercept:<12.4f} {r2:<8.4f}"
+                    f"{model.coef_[0]:<12.4f} {model.intercept_:<12.4f} {r2:<8.4f}"
                 )
 
             except Exception as e:
-                print(
-                    f"{method:<10} {str(regul):<12} ERROR: {e}"
-                )
+                print(f"{method:<10} {str(regul):<12} ERROR: {e}")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
+
