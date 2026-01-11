@@ -3,11 +3,13 @@ from tqdm.auto import tqdm
 from sklearn.datasets import fetch_openml
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
+import ann_cpp
 
-class NeuralNetwrok:
+class NeuralNetwork:
     def __init__(self, *layers):
         self.layers = list(layers)
         self.loss = None
+        self.cpp_model = ann_cpp.NeuralNetwork()
         self.lr = None
         self.history = {"loss": [], "accuracy": []}
 
@@ -35,16 +37,15 @@ class NeuralNetwrok:
                 pbar.set_postfix({"loss": "..."}) # Init postfix
             # training loop : calling forward -> compute loss -> calling backward (update wiehgts)
                 for i, (X_batch, y_batch) in enumerate(batches):
-                    y_hat = self.forward(X_batch)
-
-                    loss = self._compute_loss(y_batch, y_hat)
+                    y_hat = self.cpp_model.forward(X_batch)
+                    loss = self.cpp_model.compute_loss(y_batch, y_hat, self.loss)
                     epoch_loss += loss
+                    grad = self.cpp_model.loss_grad(y_batch, y_hat, self.loss)
+                    self.cpp_model.backward(grad, self.lr, self.loss)
 
-                    loss_gradient = self._loss_derivative(y_batch, y_hat)
-                    self.backward(loss_gradient)
 
                     running_loss = epoch_loss / (i + 1)
-                    pbar.set_postfix({"- loss": f"{running_loss:.4f}"})
+                    pbar.set_postfix({"- loss": f"{running_loss}"})
                     pbar.update(1)
                 
                 epoch_loss = epoch_loss / len(batches)
@@ -62,38 +63,38 @@ class NeuralNetwrok:
         )
         return self.history
 
-    def forward(self, X):
-        out = X
-        for layer in self.layers:
-            out = layer.forward(out)
+    # def forward(self, X):
+    #     out = X
+    #     for layer in self.layers:
+    #         out = layer.forward(out)
 
-        return out
+    #     return out
     
-    def backward(self, loss_gradient):
-        gradient = loss_gradient
-        for layer in reversed(self.layers):
-            gradient = layer.backward(gradient)
+    # def backward(self, loss_gradient):
+    #     gradient = loss_gradient
+    #     for layer in reversed(self.layers):
+    #         gradient = layer.backward(gradient)
 
-    def _compute_loss(self, y, y_hat):
-        if self.loss == "mse":
-            return self._mse(y, y_hat)
-        elif self.loss == "categorical_crossentropy":
-            return self._cce(y, y_hat)
-        elif self.loss == "binary_crossentropy":
-            return self._bce(y, y_hat)
-        else:
-            raise ValueError("Unsupported loss")
+    # def _compute_loss(self, y, y_hat):
+    #     if self.loss == "mse":
+    #         return self._mse(y, y_hat)
+    #     elif self.loss == "categorical_crossentropy":
+    #         return self._cce(y, y_hat)
+    #     elif self.loss == "binary_crossentropy":
+    #         return self._bce(y, y_hat)
+    #     else:
+    #         raise ValueError("Unsupported loss")
 
 
-    def _loss_derivative(self, y, y_hat):
-        if self.loss == "mse":
-            return self._mse_grad(y, y_hat)
-        elif self.loss == "categorical_crossentropy":
-            return self._cce_grad(y, y_hat)
-        elif self.loss == "binary_crossentropy":
-            return self._bce_grad(y, y_hat)
-        else:
-            raise ValueError("Unsupported loss")
+    # def _loss_derivative(self, y, y_hat):
+    #     if self.loss == "mse":
+    #         return self._mse_grad(y, y_hat)
+    #     elif self.loss == "categorical_crossentropy":
+    #         return self._cce_grad(y, y_hat)
+    #     elif self.loss == "binary_crossentropy":
+    #         return self._bce_grad(y, y_hat)
+    #     else:
+    #         raise ValueError("Unsupported loss")
 
          
     def compile(self, loss, lr):
@@ -106,12 +107,19 @@ class NeuralNetwrok:
             if isinstance(layer, Flatten):
                 input_dim = layer.output_dim
             elif isinstance(layer, Dense):
-                layer._initialize_parameters(input_dim)
-                layer.lr = lr
+                if input_dim is None:
+                    raise ValueError("Flatten must come before Dense")
+
+                self.cpp_model.add_dense(
+                    input_dim,
+                    layer.n_neurons,
+                    layer.activation or ""
+                )
                 input_dim = layer.n_neurons
 
+
     def predict(self, X):
-        return self.forward(X)
+        return self.cpp_model.forward(X)
     
     def plot_loss_accuracy(self,loss, accuracy):
         epochs = np.arange(1, len(loss) + 1)
@@ -136,8 +144,8 @@ class NeuralNetwrok:
         plt.show()
 
     def evaluate(self, X, y):
-        y_pred = self.forward(X)
-        loss = self._compute_loss(y, y_pred)
+        y_pred = self.cpp_model.forward(X)
+        loss = self.cpp_model.compute_loss(y, y_pred, self.loss)
 
         y_pred_labels = np.argmax(y_pred, axis=1)
         y_true_labels = np.argmax(y, axis=1)
@@ -148,28 +156,28 @@ class NeuralNetwrok:
 
         return loss, accuracy
 
-    def _mse(self, y, y_hat):
-        return np.mean((y - y_hat) ** 2)
+    # def _mse(self, y, y_hat):
+    #     return np.mean((y - y_hat) ** 2)
 
-    def _mse_grad(self, y, y_hat):
-        return 2 * (y_hat - y) / y.shape[0]
+    # def _mse_grad(self, y, y_hat):
+    #     return 2 * (y_hat - y) / y.shape[0]
     
-    def _cce(self, y, y_hat):
-        eps = 1e-9
-        return -np.mean(np.sum(y * np.log(y_hat + eps), axis=1))
+    # def _cce(self, y, y_hat):
+    #     eps = 1e-9
+    #     return -np.mean(np.sum(y * np.log(y_hat + eps), axis=1))
 
-    def _cce_grad(self, y, y_hat):
-        return (y_hat - y) / y.shape[0]
+    # def _cce_grad(self, y, y_hat):
+    #     return (y_hat - y) / y.shape[0]
 
-    def _bce(self, y, y_hat):
-        eps = 1e-9
-        return -np.mean(
-            y * np.log(y_hat + eps) +
-            (1 - y) * np.log(1 - y_hat + eps)
-        )
+    # def _bce(self, y, y_hat):
+    #     eps = 1e-9
+    #     return -np.mean(
+    #         y * np.log(y_hat + eps) +
+    #         (1 - y) * np.log(1 - y_hat + eps)
+    #     )
 
-    def _bce_grad(self, y, y_hat):
-        return (y_hat - y) / y.shape[0]
+    # def _bce_grad(self, y, y_hat):
+    #     return (y_hat - y) / y.shape[0]
 
 
     
@@ -190,7 +198,9 @@ class Dense:
     def __init__(self, n_nuerons, activation=None):
         self.n_neurons = n_nuerons
         self.activation = activation
+        self.input_dim = None
 
+        '''
         self.weights = None
         self.bias = None
 
@@ -271,99 +281,5 @@ class Dense:
 
         self.weights = np.random.randn(input_dim, self.n_neurons) * scale
         self.bias = np.zeros(self.n_neurons)
-
-
-def main():
-    X, y = fetch_openml("mnist_784",version=1,return_X_y=True,as_frame=False)
-
-    X = X.astype(np.float32)
-    y = y.astype(int)
-    X = X / 255.0
-
-    num_classes = 10
-    y_onehot = np.zeros((y.shape[0], num_classes))
-    y_onehot[np.arange(y.shape[0]), y] = 1
-
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y_onehot, test_size=0.2, random_state=42
-    )
-
-    model = NeuralNetwrok(
-        Flatten(input_shape=(784,)),
-        Dense(128, activation="relu"),
-        Dense(64, activation="relu"),
-        Dense(10, activation='softmax')  
-    )
-
-    model.compile(loss="categorical_crossentropy", lr=0.1)
-
-    history = model.train(
-        X_train,
-        y_train,
-        epochs=11,
-        batch_size=64
-    )
-
-    y_pred = model.predict(X_test)
-
-    loss, accuracy = model.evaluate(X_test, y_test)
-    print("\nFinal Test Accuracy:", accuracy, "\nFinal Test loss:", loss)
-
-if __name__ == '__main__':
-    np.random.seed(42)
-
-    main()
-
-    # X = np.random.randn(5, 3)          # 5 rows and 3 columns dataset
-    # deriv_A = np.random.randn(5, 3)
-
-    # dense = Dense(3, activation='relu')
-    # dense.weights = np.random.randn(3, 3)
-    # dense.bias = np.zeros(3)
-    # dense.lr = 0.01
-
-    # out = dense.forward(X)
-    # dX = dense.backward(deriv_A)
-    # print(dX.shape)        # should be 5 rows and 4 cols
-    # print(dX)
-
-    # model = NeuralNetwrok(
-    #     Flatten(input_shape=(3,)),
-    #     Dense(5, activation='relu'),
-    #     Dense(1)
-    # )
-
-    # model.compile(loss='mse', lr=0.01)
-
-    # X = np.random.randn(10, 3)
-    # y_hat = model.predict(X)
-
-    # print(y_hat)
-    # print(y_hat.shape)
-
-    # X = np.random.randn(100000, 1)
-    # y = (X ** 2).reshape(-1, 1)
-
-    # X = (X - X.mean()) / X.std()
-    # y = (y - y.mean()) / y.std()
-
-    # y_mean = y.mean()
-    # y_std = y.std()
-
-    # model = NeuralNetwrok(
-    #     Flatten(input_shape=(1,)),
-    #     Dense(16, activation='relu'),
-    #     Dense(16, activation='tanh'),
-    #     Dense(1)
-    # )
-
-    # model.compile(loss='mse', lr= 0.001)
-    # history = model.train(X, y, epochs=11, batch_size=32)
-
-    # print(history['loss'][-1])
-    # y_pred = model.predict(X[:5])
-    # y_pred_real = y_pred * y_std + y_mean
-
-    # print(y_pred_real)
-    # print(y[:5])
+    '''
 
