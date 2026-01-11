@@ -62,8 +62,6 @@ class NeuralNetwrok:
         )
         return self.history
 
-                
-    
     def forward(self, X):
         out = X
         for layer in self.layers:
@@ -77,18 +75,27 @@ class NeuralNetwrok:
             gradient = layer.backward(gradient)
 
     def _compute_loss(self, y, y_hat):
-        if self.loss == 'mse':
-            return ((y-y_hat)** 2).mean()
+        if self.loss == "mse":
+            return self._mse(y, y_hat)
+        elif self.loss == "categorical_crossentropy":
+            return self._cce(y, y_hat)
+        elif self.loss == "binary_crossentropy":
+            return self._bce(y, y_hat)
         else:
-            raise ValueError("Unsupported Loss Function")
+            raise ValueError("Unsupported loss")
+
 
     def _loss_derivative(self, y, y_hat):
-        if self.loss == 'mse':
-            return 2 * (y_hat - y) / y.shape[0]
+        if self.loss == "mse":
+            return self._mse_grad(y, y_hat)
+        elif self.loss == "categorical_crossentropy":
+            return self._cce_grad(y, y_hat)
+        elif self.loss == "binary_crossentropy":
+            return self._bce_grad(y, y_hat)
         else:
-            raise ValueError("Unsupported Loss functin")
-        
-    
+            raise ValueError("Unsupported loss")
+
+         
     def compile(self, loss, lr):
         self.loss = loss
         self.lr = lr
@@ -128,9 +135,44 @@ class NeuralNetwrok:
 
         plt.show()
 
+    def evaluate(self, X, y):
+        y_pred = self.forward(X)
+        loss = self._compute_loss(y, y_pred)
+
+        y_pred_labels = np.argmax(y_pred, axis=1)
+        y_true_labels = np.argmax(y, axis=1)
+
+        accuracy = np.mean(y_pred_labels == y_true_labels)
+        return loss, accuracy
+
+
+        return loss, accuracy
+
+    def _mse(self, y, y_hat):
+        return np.mean((y - y_hat) ** 2)
+
+    def _mse_grad(self, y, y_hat):
+        return 2 * (y_hat - y) / y.shape[0]
     
+    def _cce(self, y, y_hat):
+        eps = 1e-9
+        return -np.mean(np.sum(y * np.log(y_hat + eps), axis=1))
+
+    def _cce_grad(self, y, y_hat):
+        return (y_hat - y) / y.shape[0]
+
+    def _bce(self, y, y_hat):
+        eps = 1e-9
+        return -np.mean(
+            y * np.log(y_hat + eps) +
+            (1 - y) * np.log(1 - y_hat + eps)
+        )
+
+    def _bce_grad(self, y, y_hat):
+        return (y_hat - y) / y.shape[0]
 
 
+    
 class Flatten:
     def __init__(self, input_shape):
         self.input_shape = input_shape
@@ -184,22 +226,23 @@ class Dense:
         else:
             raise ValueError("Unsupported Activation")
         
-
     def backward(self, gradient):
-        if self.activation is None:
+        if self.activation == "softmax":
+            deriv_Z = gradient
+        elif self.activation is None:
             deriv_Z = gradient
         else:
             deriv_Z = gradient * self._activation_derivative(self.Z)
 
         deriv_weights = self.X.T.dot(deriv_Z)
         deriv_bias = np.sum(deriv_Z, axis=0)
-
         deriv_X = deriv_Z.dot(self.weights.T)
 
         self.weights -= self.lr * deriv_weights
         self.bias -= self.lr * deriv_bias
 
         return deriv_X
+
 
     def _activation_derivative(self, Z):
         if self.activation == 'relu':
@@ -230,7 +273,6 @@ class Dense:
         self.bias = np.zeros(self.n_neurons)
 
 
-
 def main():
     X, y = fetch_openml("mnist_784",version=1,return_X_y=True,as_frame=False)
 
@@ -250,25 +292,22 @@ def main():
         Flatten(input_shape=(784,)),
         Dense(128, activation="relu"),
         Dense(64, activation="relu"),
-        Dense(10)   # output layer
+        Dense(10, activation='softmax')  
     )
 
-    model.compile(loss="mse", lr=0.1)
+    model.compile(loss="categorical_crossentropy", lr=0.1)
 
     history = model.train(
         X_train,
         y_train,
         epochs=11,
-        batch_size=32
+        batch_size=64
     )
 
     y_pred = model.predict(X_test)
-    y_pred_labels = np.argmax(y_pred, axis=1)
-    y_true_labels = np.argmax(y_test, axis=1)
 
-    accuracy = np.mean(y_pred_labels == y_true_labels)
-
-    print("\nFinal Test Accuracy:", accuracy)
+    loss, accuracy = model.evaluate(X_test, y_test)
+    print("\nFinal Test Accuracy:", accuracy, "\nFinal Test loss:", loss)
 
 if __name__ == '__main__':
     np.random.seed(42)
