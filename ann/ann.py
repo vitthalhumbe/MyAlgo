@@ -45,18 +45,53 @@ class Dense:
         
         else:
             raise ValueError("Unsupported Activation")
+        
 
+    def backward(self, gradient):
+        if self.activation is None:
+            deriv_Z = gradient
+        else:
+            deriv_Z = gradient * self._activation_derivative(self.Z)
 
+        deriv_weights = self.X.T.dot(deriv_Z)
+        deriv_bias = np.sum(deriv_Z, axis=0)
+
+        deriv_X = deriv_Z.dot(self.weights.T)
+
+        self.weights -= self.lr * deriv_weights
+        self.bias -= self.lr * deriv_bias
+
+        return deriv_X
+
+    def _activation_derivative(self, Z):
+        if self.activation == 'relu':
+            return (Z > 0).astype(float)        # relu'(x) = (0 if x < 0 and 1 if x >= 0)
+        
+        elif self.activation == 'sigmoid':
+            sigmoid = 1 / (1 - np.exp(-Z))
+            return sigmoid * (1 - sigmoid)
+        
+        elif self.activation == 'tanh':
+            return 1 - np.tanh(Z) ** 2
+        
+        elif (self.activation == 'softmax'):
+            raise NotImplementedError( "softmax handled with cross entropy")
+        
+        else:
+            raise ValueError("unsupported Activation")
 if __name__ == '__main__':
     np.random.seed(42)
 
     X = np.random.randn(5, 3)          # 5 rows and 3 columns dataset
+    deriv_A = np.random.randn(5, 3)
 
-    dense = Dense(4, activation='relu')
-    dense.weights = np.random.randn(3, 4)
-    dense.bias = np.zeros(4)
+    dense = Dense(3, activation='relu')
+    dense.weights = np.random.randn(3, 3)
+    dense.bias = np.zeros(3)
+    dense.lr = 0.01
 
     out = dense.forward(X)
-    print(out.shape)        # should be 5 rows and 4 cols
-    print(out)
+    dX = dense.backward(deriv_A)
+    print(dX.shape)        # should be 5 rows and 4 cols
+    print(dX)
 
