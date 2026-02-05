@@ -5,6 +5,8 @@ The main goal of this project is to combining
 - **python** as a user facing python API
 - **C++** as a high performance computational backend (only for numerical calculations)
 
+Read More : ![documentations](Documentation/MyAlgo.pdf)
+
 
 ## Implemented Algorithms
 ### Linear Regression
