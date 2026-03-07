@@ -3,7 +3,7 @@ requires = ["setuptools>=68", "pybind11>=2.11", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "myalgo"
+name = "myalgo-core"
 version = "0.1.0"
 description = "ML algorithms with C++ backends"
 authors = [{ name = "Vitthal Humbe", email = "vitthal.3454@gmail.com" }]
