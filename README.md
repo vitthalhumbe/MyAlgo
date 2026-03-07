@@ -50,8 +50,6 @@ pip install myalgo
 ![MNIST Results](results/MNIST%20loss%20vs%20Accuracy.png)
 
 ## Author
-
-## Author
 Vitthal Humbe — [github.com/vitthalhumbe](https://github.com/vitthalhumbe)
 B.Tech second year, AI/ML
 
