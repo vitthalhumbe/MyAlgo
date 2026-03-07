@@ -2,7 +2,7 @@ name: CI
 on: [push, pull_request]
 
 jobs:
-  build-and-test:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -11,7 +11,9 @@ jobs:
           python-version: "3.11"
       - name: Install Eigen
         run: sudo apt-get install -y libeigen3-dev
-      - name: Install and build
-        run: pip install -e ".[dev]" --break-system-packages
+      - name: Install dependencies
+        run: pip install pytest pybind11 numpy tqdm scikit-learn matplotlib pandas
+      - name: Install package
+        run: pip install -e .
       - name: Run tests
         run: pytest tests/
