@@ -6,8 +6,6 @@
 
 import numpy as np
 from tqdm.auto import tqdm
-from sklearn.datasets import fetch_openml
-from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 import myalgo._ann_cpp as ann_cpp
 
