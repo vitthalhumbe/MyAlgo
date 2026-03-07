@@ -162,7 +162,7 @@ private:
 
 };
 
-PYBIND11_MODULE(linreg_internal, m) {
+PYBIND11_MODULE(_linreg_cpp, m) {
     py::class_<LinearRegression>(m, "LinearRegression")
         .def(py::init<>())
         .def("fit", &LinearRegression::fit)

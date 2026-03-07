@@ -1,11 +1,22 @@
+build/
+dist/
+*.egg-info/
+**/__pycache__/
 __pycache__/
 *.pyc
 
 .venv/
+*.so
+*.pyd
+*.o
+
 
 .vscode/
-
+.venv/
+*.pyc
 .env
 build
 .DS_Store
 
+.vscode/
+.idea/

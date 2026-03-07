@@ -179,7 +179,7 @@ private:
     vector<Dense> layers;
 };
 
-PYBIND11_MODULE(ann_cpp, m) {
+PYBIND11_MODULE(_ann_cpp, m) {
     py::class_<NeuralNetwork>(m, "NeuralNetwork")
         .def(py::init<>())
         .def("add_dense", &NeuralNetwork::add_dense)

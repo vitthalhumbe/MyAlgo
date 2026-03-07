@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68", "pybind11>=2.11", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "myalgo"
+version = "0.1.0"
+description = "ML algorithms with C++ backends"
+authors = [{ name = "Vitthal Humbe", email = "vitthal.3454@gmail.com" }]
+license = { text = "MIT" }
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = ["numpy>=2.3", "tqdm", "scikit-learn", "matplotlib"]
+keywords = ["machine learning", "neural network", "linear regression", "C++"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: C++",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+[project.urls]
+Homepage = "https://github.com/vitthalhumbe/myalgo"
+
+[tool.setuptools.packages.find]
+where = ["src"]
