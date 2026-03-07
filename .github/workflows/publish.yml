@@ -3,34 +3,29 @@ name: Publish to PyPI
 on:
   push:
     tags:
-      - "v*.*.*"   # triggers on tags like v0.1.0, v1.0.0 etc.
+      - "v*.*.*"
 
 jobs:
   build:
-    name: Build distribution
+    name: Build wheels
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
 
       - name: Install Eigen
         run: sudo apt-get install -y libeigen3-dev
 
-      - name: Install build dependencies
-        run: pip install build pybind11
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.19.0
+        env:
+          CIBW_BUILD: "cp311-manylinux_x86_64 cp312-manylinux_x86_64"
+          CIBW_BEFORE_ALL: "yum install -y eigen3-devel || apt-get install -y libeigen3-dev"
+          CIBW_ENVIRONMENT: 'EIGEN_INCLUDE="/usr/include/eigen3"'
 
-      - name: Build wheel and sdist
-        run: python -m build
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: dist
-          path: dist/
+          path: wheelhouse/
 
   publish:
     name: Publish to PyPI
@@ -38,14 +33,10 @@ jobs:
     needs: build
     environment: pypi
     permissions:
-      id-token: write 
-
+      id-token: write
     steps:
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
           name: dist
           path: dist/
-
-      - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+      - uses: pypa/gh-action-pypi-publish@release/v1
