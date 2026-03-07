@@ -16,7 +16,8 @@ jobs:
         uses: pypa/cibuildwheel@v2.19.0
         env:
           CIBW_BUILD: "cp311-manylinux_x86_64 cp312-manylinux_x86_64"
-          CIBW_BEFORE_ALL_LINUX: "yum install -y cmake && cd /tmp && curl -L https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz | tar xz && cd eigen-3.4.0 && cmake -DCMAKE_INSTALL_PREFIX=/usr . && make install"
+          CIBW_MANYLINUX_X86_64_IMAGE: "quay.io/pypa/manylinux_2_28_x86_64"
+          CIBW_BEFORE_ALL_LINUX: "dnf install -y eigen3-devel"
           CIBW_ENVIRONMENT: EIGEN_INCLUDE="/usr/include/eigen3"
 
       - uses: actions/upload-artifact@v4
