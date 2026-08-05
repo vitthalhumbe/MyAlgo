@@ -3,8 +3,8 @@ requires = ["setuptools>=68", "pybind11>=2.11", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "myalgo-core"
-version = "0.1.3"
+name = "bitlearn"
+version = "1.0.0"
 description = "ML algorithms with C++ backends"
 authors = [{ name = "Vitthal Humbe", email = "vitthal.3454@gmail.com" }]
 license = { text = "MIT" }
@@ -20,7 +20,7 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/vitthalhumbe/myalgo"
+Homepage = "https://github.com/vitthalhumbe/bitlearn"
 
 [tool.setuptools.packages.find]
 where = ["src"]
