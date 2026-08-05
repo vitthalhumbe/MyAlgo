@@ -7,7 +7,7 @@
 import numpy as np
 from tqdm.auto import tqdm
 import matplotlib.pyplot as plt
-import myalgo._ann_cpp as ann_cpp
+import bitlearn._ann_cpp as ann_cpp
 
 class NeuralNetwork:
     """

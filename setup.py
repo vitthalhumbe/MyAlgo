@@ -6,14 +6,14 @@ from pybind11.setup_helpers import Pybind11Extension, build_ext
 
 ext_modules = [
     Pybind11Extension(
-        "myalgo._linreg_cpp",
-        ["src/myalgo/_cpp/linear_regression.cpp"],
+        "bitlearn._linreg_cpp",
+        ["src/bitlearn/_cpp/linear_regression.cpp"],
         include_dirs=["/usr/include/eigen3"],
         extra_compile_args=["-O3", "-std=c++17"],
     ),
     Pybind11Extension(
-        "myalgo._ann_cpp",
-        ["src/myalgo/_cpp/ann.cpp"],
+        "bitlearn._ann_cpp",
+        ["src/bitlearn/_cpp/ann.cpp"],
         include_dirs=["/usr/include/eigen3"],
         extra_compile_args=["-O3", "-std=c++17"],
     ),

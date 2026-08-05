@@ -1,4 +1,4 @@
-![PyPI](https://img.shields.io/pypi/v/myalgo)
+![PyPI](https://img.shields.io/pypi/v/bitlearn)
 ![CI](https://github.com/vitthalhumbe/MyAlgo/actions/workflows/ci.yml/badge.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 # bitlearn

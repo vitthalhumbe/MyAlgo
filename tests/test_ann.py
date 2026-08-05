@@ -3,7 +3,7 @@
 
 import pytest
 import numpy as np
-from myalgo.ann import NeuralNetwork, Dense, Flatten
+from bitlearn.ann import NeuralNetwork, Dense, Flatten
 
 
 # CURRENT TEST STATUS : 24/24 PASSED

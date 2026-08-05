@@ -3,7 +3,7 @@
 
 import pytest
 import numpy as np
-from myalgo import LinearRegression
+from bitlearn import LinearRegression
 
 
 # CURRENT TEST MILESTONE : 21/21 PASSED

@@ -6,7 +6,7 @@
 
 
 import numpy as np
-from myalgo._linreg_cpp import LinearRegression as _CppImplimentation
+from bitlearn._linreg_cpp import LinearRegression as _CppImplimentation
 class LinearRegression:
 
     """
@@ -41,7 +41,7 @@ class LinearRegression:
 
     @examples
         >>> import numpy as np
-        >>> from myalgo import LinearRegression
+        >>> from bitlearn import LinearRegression
         >>> X = np.random.rand(100, 1)
         >>> y = 3 * X + 2 + np.random.randn(100, 1)
         >>> model = LinearRegression(method='gd', lr=0.01, epochs=1000)
