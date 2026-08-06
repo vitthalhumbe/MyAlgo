@@ -7,20 +7,24 @@ name = "bitlearn"
 version = "1.0.0"
 description = "ML algorithms with C++ backends"
 authors = [{ name = "Vitthal Humbe", email = "vitthal.3454@gmail.com" }]
-license = { text = "MIT" }
+license = "MIT"
 readme = "README.md"
 requires-python = ">=3.9"
-dependencies = ["numpy>=2.3", "tqdm", "scikit-learn", "matplotlib"]
+dependencies = ["numpy>=2.3", "tqdm", "scikit-learn"]
 keywords = ["machine learning", "neural network", "linear regression", "C++"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: C++",
-    "License :: OSI Approved :: MIT License",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 
+[project.optional-dependencies]
+benchmark = ["matplotlib", "pandas"]
+
 [project.urls]
 Homepage = "https://github.com/vitthalhumbe/bitlearn"
+Repository = "https://github.com/vitthalhumbe/bitlearn"
+Issues = "https://github.com/vitthalhumbe/bitlearn/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]
