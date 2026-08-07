@@ -4,12 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "bitlearn"
-version = "1.0.0"
+version = "1.0.1"
 description = "ML algorithms with C++ backends"
 authors = [{ name = "Vitthal Humbe", email = "vitthal.3454@gmail.com" }]
 license = "MIT"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 dependencies = ["numpy>=2.3", "tqdm", "scikit-learn"]
 keywords = ["machine learning", "neural network", "linear regression", "C++"]
 classifiers = [
